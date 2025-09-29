@@ -1,0 +1,53 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* Avatar button (also toggles chat) */
+#chatbot-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: url('../avatar-face.png') center/cover no-repeat;
+  border: none;
+  cursor: pointer;
+  z-index: 9998;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* Chat popup container */
+#chatbot-popup {
+  position: fixed;
+  bottom: 110px; /* above avatar */
+  right: 20px;
+  width: 400px;   
+  height: 500px;  
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: none; /* hidden initially */
+  z-index: 9999;
+
+  /* Animation defaults */
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* When chat popup is visible */
+#chatbot-popup.open {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Chat iframe */
+#chatbot-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+

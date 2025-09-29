@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Avatar Website Chatbot</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Avatar button */
+    #chatbot-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
+      background: url('avatar-face.png') center/cover no-repeat;
+      border: none;
+      cursor: pointer;
+      z-index: 9998;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    /* Greeting text */
+    #chatbot-greeting {
+      position: fixed;
+      bottom: 95px;
+      right: 20px;
+      background: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #333;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      z-index: 9997;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    #chatbot-greeting.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Chat popup container */
+    #chatbot-popup {
+      position: fixed;
+      bottom: 95px;
+      right: 20px;
+      width: 400px;
+      height: 800px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      display: none;
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    /* When chat popup is visible */
+    #chatbot-popup.open {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Chat iframe */
+    #chatbot-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Refresh button inside popup */
+    #chatbot-refresh {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 10;
+      width: 36px;
+      height: 36px;
+      background: #e74c3c url('reload.png') center/60% no-repeat;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #chatbot-refresh:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+  <h1>Demo Website</h1>
+  <p>This page has a 3D Avatar Chatbot in the corner.</p>
+
+  <!-- Greeting text -->
+  <div id="chatbot-greeting">I am here to help!</div>
+
+  <!-- Avatar button -->
+  <button id="chatbot-button"></button>
+
+  <!-- Chat popup -->
+  <div id="chatbot-popup">
+    <!-- Refresh button -->
+    <button id="chatbot-refresh" title="Refresh Chat"></button>
+
+    <iframe id="chatbot-frame" src="http://localhost:5173/"></iframe>
+  </div>
+
+  <script>
+    const chatbotButton = document.getElementById('chatbot-button');
+    const chatbotPopup = document.getElementById('chatbot-popup');
+    const chatbotGreeting = document.getElementById('chatbot-greeting');
+    const refreshButton = document.getElementById('chatbot-refresh');
+    const chatbotFrame = document.getElementById('chatbot-frame');
+
+    // Show greeting after page load
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        chatbotGreeting.classList.add('show');
+      }, 500);
+
+      setTimeout(() => {
+        chatbotGreeting.classList.remove('show');
+      }, 5000);
+    });
+
+    // Toggle chat popup with animation
+    chatbotButton.addEventListener('click', () => {
+      if (chatbotPopup.classList.contains('open')) {
+        chatbotPopup.classList.remove('open');
+        setTimeout(() => {
+          chatbotPopup.style.display = 'none';
+        }, 300);
+      } else {
+        chatbotPopup.style.display = 'block';
+        requestAnimationFrame(() => {
+          chatbotPopup.classList.add('open');
+        });
+      }
+    });
+
+    // Refresh iframe when button clicked
+    refreshButton.addEventListener('click', () => {
+      chatbotFrame.src = chatbotFrame.src;
+    });
+  </script>
+</body>
+</html>
