@@ -12,6 +12,7 @@ dotenv.config();
 const azureToken = process.env.GITHUB_TOKEN;
 const azureEndpoint = "https://models.github.ai/inference";
 const azureModel = "openai/gpt-4.1-mini";
+const elevenLabsApiKey = process.env.ELEVEN_LABS_API_KEY;
 
 const app = express();
 app.use(express.json());
@@ -40,6 +41,49 @@ const lipSyncMessage = async (messageIndex) => {
   console.log(`Lip sync done in ${new Date().getTime() - time}ms`);
 };
 
+// ElevenLabs TTS function
+const generateElevenLabsTTS = async (text, fileName) => {
+  try {
+    console.log(`Using ElevenLabs TTS for: "${text}"`);
+    
+    // Using Rachel voice (you can change this voice ID)
+    const voiceId = "21m00Tcm4TlvDq8ikWAM"; // Rachel
+    
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "xi-api-key": elevenLabsApiKey,
+        },
+        body: JSON.stringify({
+          text: text,
+          model_id: "eleven_monolingual_v1",
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`ElevenLabs API error: ${response.status}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    await fs.writeFile(fileName, buffer);
+
+    console.log(`ElevenLabs TTS successful for: "${text}"`);
+    return true;
+  } catch (error) {
+    console.error(`ElevenLabs TTS failed: ${error.message}`);
+    return false;
+  }
+};
+
 // Fallback to Microsoft Zira voice
 const generateSystemTTS = async (text, fileName) => {
   try {
@@ -61,9 +105,17 @@ const generateSystemTTS = async (text, fileName) => {
   }
 };
 
-// Combined TTS function with fallback
+// Combined TTS function with ElevenLabs primary and system fallback
 const generateTTS = async (text, fileName) => {
-  console.log("Skipping ElevenLabs, using system TTS...");
+  if (elevenLabsApiKey) {
+    console.log("Using ElevenLabs TTS...");
+    const success = await generateElevenLabsTTS(text, fileName);
+    if (success) return true;
+    console.log("ElevenLabs failed, falling back to system TTS...");
+  } else {
+    console.log("ElevenLabs API key not found, using system TTS...");
+  }
+  
   return await generateSystemTTS(text, fileName);
 };
 
@@ -116,12 +168,12 @@ app.post("/chat", async (req, res) => {
 
   const client = ModelClient(azureEndpoint, new AzureKeyCredential(azureToken));
 
-const response = await client.path("/chat/completions").post({
-  body: {
-    messages: [
-      {
-        role: "system",
-        content: `
+  const response = await client.path("/chat/completions").post({
+    body: {
+      messages: [
+        {
+          role: "system",
+          content: `
         You name is Emma and you are a virtual assistant for Joel Tan Jun An.
         If user uses profanities, lead them away and ask how you can help.
         You will always reply with a JSON array of messages. With a maximum of 2 messages.
@@ -183,12 +235,12 @@ const response = await client.path("/chat/completions").post({
           - Temasek Polytechnic Tennis Team (2024-2026)
           - Temasek Polytechnic Community Service Club (2024-2026)
         `,
-      },
-      {
-        role: "user",
-        content: userMessage,
-      },
-    ],
+        },
+        {
+          role: "user",
+          content: userMessage,
+        },
+      ],
       temperature: 0.6,
       top_p: 1,
       model: azureModel,
@@ -243,6 +295,5 @@ const audioFileToBase64 = async (file) => {
 
 app.listen(port, () => {
   console.log(`Virtual Girlfriend listening on port ${port}`);
-  console.log(`ElevenLabs API Key: DISABLED (always using system TTS)`);
+  console.log(`ElevenLabs API Key: ${elevenLabsApiKey ? "Configured" : "Not found - using system TTS"}`);
 });
-
