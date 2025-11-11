@@ -11,7 +11,7 @@ export const UI = ({ hidden, ...props }) => {
 
   // Chat history state - Initialize with welcome message
   const [chatHistory, setChatHistory] = useState([
-    { role: "bot", content: "Welcome to People Profilers! How can I assist you today?" }
+    { role: "bot", content: "Hello! I am Joel Tan's chatbot! How can I assist you today?" }
   ]);
 
   // Chat container ref for auto-scrolling
@@ -139,13 +139,6 @@ export const UI = ({ hidden, ...props }) => {
         <div className="flex-1 mb-3 min-h-0">
           <div
             className="bg-white rounded-lg shadow-md p-3 h-full flex flex-col relative"
-            style={{
-              backgroundImage: "url('/textures/peopleprofilers.png')",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center",
-              backgroundSize: "120px",
-              opacity: 0.95
-            }}
           >
             <h3 className="text-sm font-semibold text-gray-700 mb-2 border-b border-gray-200 pb-1 flex-shrink-0">Conversation</h3>
             <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400" ref={chatContainerRef} style={{ scrollbarWidth: 'thin', scrollbarColor: '#d1d5db transparent' }}>
@@ -199,13 +192,6 @@ export const UI = ({ hidden, ...props }) => {
         {/* Input Area */}
         <div className="bg-white rounded-lg shadow-lg p-3 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <button type="button" aria-label={listening ? "Stop listening" : "Start voice input"} onClick={() => {
-                if (listening && recognitionRef.current) recognitionRef.current.stop();
-                else if (!listening) startListening();
-              }} className={`p-2 rounded-lg flex items-center justify-center transition-all duration-200 flex-shrink-0 ${listening ? "bg-red-500 text-white animate-pulse shadow-lg" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}>
-              <img src="/textures/mic.png" alt="Mic" className="w-4 h-4"/>
-            </button>
-
             <input className="flex-1 placeholder:text-gray-500 placeholder:italic p-2 rounded-lg border border-gray-300 focus:border-sky-400 focus:ring-2 focus:ring-sky-200 focus:outline-none text-sm min-w-0"
               placeholder="Ask me anything..."
               ref={input}
