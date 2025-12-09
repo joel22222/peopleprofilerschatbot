@@ -1,27 +1,50 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-const backendUrl = import.meta.env.VITE_API_URL || "https://peopleprofilerschatbot-backend.onrender.com";
+const backendUrl =
+  import.meta.env.VITE_API_URL ||
+  "https://peopleprofilerschatbot-backend.onrender.com";
 
 const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
-  const chat = async (message) => {
+  // State
+  const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [cameraZoomed, setCameraZoomed] = useState(false);
+
+  // Chat function with error handling and safe array checks
+  const chat = async (msg) => {
     setLoading(true);
     try {
-      const data = await fetch(`${backendUrl}/chat`, {
+      const respRaw = await fetch(`${backendUrl}/chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg }),
       });
-      const resp = (await data.json()).messages;
-      setMessages((messages) => [...messages, ...resp]);
+
+      if (!respRaw.ok) {
+        const text = await respRaw.text().catch(() => null);
+        console.error("Chat API error:", respRaw.status, text);
+        setLoading(false);
+        return "Sorry, the server returned an error.";
+      }
+
+      const json = await respRaw.json().catch(() => ({}));
+      const resp = Array.isArray(json?.messages) ? json.messages : [];
+
+      if (resp.length > 0) {
+        setMessages((messages) => [...messages, ...resp]);
+      }
+
       setLoading(false);
-      
-      // Return the combined text from all messages for chat history
-      const combinedText = resp.map(msg => msg.text).join(' ');
-      return combinedText;
+
+      // Combine all messages into a single string
+      const combinedText = resp
+        .map((msg) => msg?.text || "")
+        .join(" ")
+        .trim();
+      return combinedText || "Sorry, I couldn't get a response.";
     } catch (error) {
       console.error("Error in chat function:", error);
       setLoading(false);
@@ -29,15 +52,12 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  const [messages, setMessages] = useState([]);
-  const [message, setMessage] = useState();
-  const [loading, setLoading] = useState(false);
-  const [cameraZoomed, setCameraZoomed] = useState(false);
-  
+  // Remove the first message after it has been played
   const onMessagePlayed = () => {
     setMessages((messages) => messages.slice(1));
   };
 
+  // Update current message whenever messages array changes
   useEffect(() => {
     if (messages.length > 0) {
       setMessage(messages[0]);
@@ -62,6 +82,7 @@ export const ChatProvider = ({ children }) => {
   );
 };
 
+// Custom hook to consume ChatContext
 export const useChat = () => {
   const context = useContext(ChatContext);
   if (!context) {
